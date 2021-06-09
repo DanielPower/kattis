@@ -1,13 +1,16 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
-	"log"
+	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
 
 	"gitlab.com/danielpower/kattis/go/problems"
+	"gitlab.com/danielpower/kattis/go/utils"
 )
 
 var problemMap = map[string]problems.Problem{
@@ -37,25 +40,18 @@ func runAllTestsForProblem(problem problems.Problem) {
 	}
 }
 
-func runSingleTestForProblem(problem problems.Problem, fileName string) {
-	input, expectedOutput := getTestStrings(fileName)
-	output := problem.Run(input)
-	if strings.TrimSuffix(output, "\n") == strings.TrimSuffix(expectedOutput, "\n") {
+func runSingleTestForProblem(problem problems.Problem, testName string) {
+	inputFile, err := os.Open("tests/" + testName + ".in")
+	utils.PanicIfErr(err)
+	expectedOutput, err := ioutil.ReadFile("tests/" + testName + ".ans")
+	utils.PanicIfErr(err)
+	var outputBuffer bytes.Buffer
+	outputWriter := bufio.NewWriter(&outputBuffer)
+	problem.Run(inputFile, outputWriter)
+	outputWriter.Flush()
+	if strings.TrimSuffix(outputBuffer.String(), "\n") == strings.TrimSuffix(string(expectedOutput), "\n") {
 		fmt.Println("✅ Passed")
 	} else {
 		fmt.Println("❌ Failed")
 	}
-}
-
-func getTestStrings(testName string) (string, string) {
-	var results [2]string
-	for i, extenstion := range []string{"in", "ans"} {
-		bytes, err := os.ReadFile("tests/" + testName + "." + extenstion)
-		if err != nil {
-			log.Fatal(err)
-		}
-		string := strings.TrimSuffix(string(bytes), "\n")
-		results[i] = string
-	}
-	return results[0], results[1]
 }

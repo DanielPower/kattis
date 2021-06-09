@@ -2,6 +2,7 @@ package problems
 
 import (
 	"bufio"
+	"io"
 	"log"
 	"strconv"
 	"strings"
@@ -13,9 +14,8 @@ var GrowlingGears = Problem{
 	Tests: []string{"G"},
 }
 
-func runGrowlingGears(input string) string {
-	var output string
-	var lineScanner = bufio.NewScanner(strings.NewReader(input))
+func runGrowlingGears(input io.Reader, output io.Writer) {
+	var lineScanner = bufio.NewScanner(input)
 	lineScanner.Scan()
 	testCaseCount, err := strconv.Atoi(lineScanner.Text())
 	if err != nil {
@@ -50,9 +50,8 @@ func runGrowlingGears(input string) string {
 				bestGear = j
 			}
 		}
-		output += strconv.Itoa(bestGear + 1)+"\n"
+		output.Write([]byte(strconv.Itoa(bestGear+1) + "\n"))
 	}
-	return output
 }
 
 func getTorque(a, b, c int) int {
