@@ -1,57 +1,59 @@
 package main
 
 import (
-	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"log"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
-
-	"gitlab.com/danielpower/kattis/go/problems"
-	"gitlab.com/danielpower/kattis/go/utils"
 )
 
-var problemMap = map[string]problems.Problem{
-	"growlinggears": problems.GrowlingGears,
-	"hello":         problems.Hello,
-	"tarifa":        problems.Tarifa,
-}
-
 func main() {
-	if len(os.Args[1:]) >= 1 {
-		problemName := os.Args[1]
-		problem := problemMap[problemName]
-		runAllTestsForProblem(problem)
-	} else {
-		for _, problem := range problemMap {
-			runAllTestsForProblem(problem)
-		}
+	var problems map[string][]string
+	data, err := os.ReadFile("problems.json")
+	panicIfErr(err)
+	err = json.Unmarshal(data, &problems)
+	panicIfErr(err)
+	for problem, tests := range(problems) {
+		runAllTestsForProblem(problem, tests)
 	}
 }
 
-func runAllTestsForProblem(problem problems.Problem) {
-	testCountString := strconv.Itoa(len(problem.Tests))
-	for testId, fileName := range problem.Tests {
+func runAllTestsForProblem(problem string, tests []string) {
+	testCountString := strconv.Itoa(len(tests))
+	for testId, fileName := range tests {
 		testIdString := strconv.Itoa(testId + 1)
-		fmt.Println("[" + testIdString + "/" + testCountString + "] " + problem.Name)
+		fmt.Println("[" + testIdString + "/" + testCountString + "] " + problem)
 		runSingleTestForProblem(problem, fileName)
 	}
 }
 
-func runSingleTestForProblem(problem problems.Problem, testName string) {
-	inputFile, err := os.Open("tests/" + testName + ".in")
-	utils.PanicIfErr(err)
-	expectedOutput, err := ioutil.ReadFile("tests/" + testName + ".ans")
-	utils.PanicIfErr(err)
-	var outputBuffer bytes.Buffer
-	outputWriter := bufio.NewWriter(&outputBuffer)
-	problem.Run(inputFile, outputWriter)
-	outputWriter.Flush()
-	if strings.TrimSuffix(outputBuffer.String(), "\n") == strings.TrimSuffix(string(expectedOutput), "\n") {
+func runSingleTestForProblem(problem string, fileName string) {
+	inputFile, err := os.Open("tests/" + fileName + ".in")
+	var output bytes.Buffer
+	outputWriter := io.Writer(&output)
+	panicIfErr(err)
+	expectedOutput, err := os.ReadFile("tests/" + fileName + ".ans")
+	panicIfErr(err)
+	cmd := exec.Command("go", "run", "problems/"+problem+".go")
+	cmd.Stdin = inputFile
+	cmd.Stdout = outputWriter
+	cmd.Stderr = os.Stderr
+	err = cmd.Run()
+	panicIfErr(err)
+	if strings.TrimSuffix(output.String(), "\n") == strings.TrimSuffix(string(expectedOutput), "\n") {
 		fmt.Println("✅ Passed")
 	} else {
 		fmt.Println("❌ Failed")
+	}
+}
+
+func panicIfErr(err error) {
+	if err != nil {
+		log.Panic(err)
 	}
 }

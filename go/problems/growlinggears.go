@@ -1,21 +1,16 @@
-package problems
+package main
 
 import (
 	"bufio"
 	"io"
 	"log"
+	"os"
 	"strconv"
 	"strings"
 )
 
-var GrowlingGears = Problem{
-	Name:  "growlinggears",
-	Run:   runGrowlingGears,
-	Tests: []string{"G"},
-}
-
-func runGrowlingGears(input io.Reader, output io.Writer) {
-	var lineScanner = bufio.NewScanner(input)
+func main() {
+	var lineScanner = bufio.NewScanner(os.Stdin)
 	lineScanner.Scan()
 	testCaseCount, err := strconv.Atoi(lineScanner.Text())
 	if err != nil {
@@ -50,7 +45,7 @@ func runGrowlingGears(input io.Reader, output io.Writer) {
 				bestGear = j
 			}
 		}
-		output.Write([]byte(strconv.Itoa(bestGear+1) + "\n"))
+		io.WriteString(os.Stdout, strconv.Itoa(bestGear+1)+"\n")
 	}
 }
 
