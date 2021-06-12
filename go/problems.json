@@ -1,5 +1,6 @@
 {
     "hello": ["hello"],
+    "delimitersoup": ["01", "02", "03", "04", "05"],
     "growlinggears": ["G"],
     "tarifa": ["tarifa.1", "tarifa.2", "tarifa.3"],
     "shoppinglisteasy": ["test0"]
