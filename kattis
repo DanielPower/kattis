@@ -59,4 +59,11 @@ for index, test_file in enumerate(test_names):
             .stdout.decode("utf-8")
             .replace("\r\n", "\n")
         )
-    print("✅" if result == ans else "❌")
+    if (result == ans):
+        print("✅")
+    else:
+        print("❌")
+        print("received:")
+        print(result)
+        print("expected:")
+        print(ans)

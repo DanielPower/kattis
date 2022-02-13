@@ -1,2 +1,5 @@
 /rust/*/target
 /c++/build
+/.kattisrc
+/.cache
+/.ccls-cache/
