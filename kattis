@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+import os
+import argparse
+import subprocess
+from pathlib import Path
+import sys
+from zipfile import BadZipFile, ZipFile
+
+import requests
+
+parser = argparse.ArgumentParser()
+parser.add_argument("language")
+parser.add_argument("problem")
+args = parser.parse_args()
+
+from contextlib import contextmanager
+
+@contextmanager
+def cwd(path):
+    oldpwd=os.getcwd()
+    os.chdir(path)
+    try:
+        yield
+    finally:
+        os.chdir(oldpwd)
+
+TEST_DIR = f"tests/{args.problem}"
+test_dir = Path(TEST_DIR)
+if not test_dir.exists():
+    print("Tests not found. Downloading")
+    CACHE_PATH = ".cache"
+    ZIP_PATH = CACHE_PATH + "/samples.zip"
+    cache_path = Path(CACHE_PATH)
+    request = requests.get(
+        f"https://open.kattis.com/problems/{args.problem}/file/statement/samples.zip",
+    )
+    cache_path.mkdir(exist_ok=True)
+    test_dir.mkdir(exist_ok=True, parents=True)
+
+    with open(ZIP_PATH, "wb") as outfile:
+        outfile.write(request.content)
+    try:
+        with ZipFile(ZIP_PATH) as myzip:
+            myzip.extractall(path=TEST_DIR)
+    except BadZipFile:
+        print("Problem not found")
+        sys.exit()
+
+print(f'Testing problem "{args.problem}" with language "{args.language}"')
+test_names = list({str(test_file).split(".")[0] for test_file in test_dir.iterdir()})
+test_names.sort()
+for index, test_file in enumerate(test_names):
+    print(f"[{index+1}/{len(test_names)}]", end=" ")
+    inp = open(f"{test_file}.in", "rb").read()
+    ans = open(f"{test_file}.ans", "rb").read().decode("utf-8").replace("\r\n", "\n")
+    with cwd(args.language):
+        result = (
+            subprocess.run(["./run.sh", args.problem], stdout=subprocess.PIPE, input=inp)
+            .stdout.decode("utf-8")
+            .replace("\r\n", "\n")
+        )
+    print("✅" if result == ans else "❌")
