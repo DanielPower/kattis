@@ -57,7 +57,7 @@ if not test_dir.exists():
 
 passes = 0
 print(f'Testing problem "{args.problem}" with language "{args.language}"')
-test_names = list({str(test_file).split(".")[0] for test_file in test_dir.iterdir()})
+test_names = list({'.'.join(str(test_file).split(".")[:-1]) for test_file in test_dir.iterdir()})
 test_names.sort()
 for index, test_file in enumerate(test_names):
     print(f"[{index+1}/{len(test_names)}]", end=" ")
