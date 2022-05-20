@@ -1,4 +1,4 @@
-use std::io::{self};
+use std::io;
 
 fn main() {
     let mut buffer = String::new();

@@ -6,5 +6,20 @@ fn main() {
     let mut values = buffer.split_whitespace();
     let x = values.next().unwrap().parse::<i16>().unwrap();
     let y = values.next().unwrap().parse::<i16>().unwrap();
-    println!("{}", if x > 0 { if y > 0 { 1 } else { 4 } } else { if y > 0 { 2 } else { 3 } });
+    println!(
+        "{}",
+        if x > 0 {
+            if y > 0 {
+                1
+            } else {
+                4
+            }
+        } else {
+            if y > 0 {
+                2
+            } else {
+                3
+            }
+        }
+    );
 }
