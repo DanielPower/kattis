@@ -27,12 +27,6 @@ def cwd(path):
         os.chdir(oldpwd)
 
 
-EXTENSIONS = {
-    "c++": "cpp",
-    "python": "py",
-    "haskell": "hs",
-}
-
 TEST_DIR = f"tests/{args.problem}"
 test_dir = Path(TEST_DIR)
 if not test_dir.exists():
@@ -57,7 +51,9 @@ if not test_dir.exists():
 
 passes = 0
 print(f'Testing problem "{args.problem}" with language "{args.language}"')
-test_names = list({'.'.join(str(test_file).split(".")[:-1]) for test_file in test_dir.iterdir()})
+test_names = list(
+    {".".join(str(test_file).split(".")[:-1]) for test_file in test_dir.iterdir()}
+)
 test_names.sort()
 for index, test_file in enumerate(test_names):
     print(f"[{index+1}/{len(test_names)}]", end=" ")
@@ -83,6 +79,11 @@ for index, test_file in enumerate(test_names):
         print(ans)
 
 if passes == len(test_names):
-    subprocess.run(
-        ["./submit", f"{args.language}/{args.problem}.{EXTENSIONS[args.language]}"]
-    )
+    with cwd(args.language):
+        source = (
+            subprocess.run(["./source.sh", args.problem], stdout=subprocess.PIPE)
+            .stdout.decode("utf-8")
+            .strip()
+        )
+    print(f"{args.language}/{source}")
+    subprocess.run(["./submit", f"{args.language}/{source}", "-p", args.problem])
