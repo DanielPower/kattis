@@ -1,3 +1,2 @@
 #!/bin/sh
-cd $1
-cargo build
+rustc "$1.rs" -o build/$1
