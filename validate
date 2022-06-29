@@ -1,0 +1,9 @@
+#!/bin/sh
+set -euxo pipefail
+
+LANGUAGE=$1
+PROBLEM=$2
+
+cd $LANGUAGE
+./build.sh $PROBLEM
+cat "../tests/$PROBLEM/autori.1.in" | ./run.sh $PROBLEM
