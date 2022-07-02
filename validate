@@ -1,9 +1,28 @@
 #!/bin/sh
-set -euxo pipefail
+set -euo pipefail
 
 LANGUAGE=$1
 PROBLEM=$2
+ROOT=$(pwd)
 
-cd $LANGUAGE
-./build.sh $PROBLEM
-cat "../tests/$PROBLEM/autori.1.in" | ./run.sh $PROBLEM
+cd $ROOT/$LANGUAGE
+
+if [ -f "prepare" ]; then
+  ./prepare $PROBLEM
+fi
+
+cd $ROOT
+
+$ROOT/utils/populate_tests
+
+cd $ROOT/$LANGUAGE
+
+echo "Validating $LANGUAGE:$PROBLEM"
+
+INPUTS=$(cat "$ROOT/tests/$PROBLEM" | grep "\.in$" | sed "s/\.in$//")
+
+for input in $INPUTS
+do
+  #>&2 diff <(cat "$ROOT/tests/$PROBLEM/1.in" | $ROOT/$LANGUAGE/run $PROBLEM) <(cat "$ROOT/tests/$PROBLEM/1.ans")
+  echo input
+done

@@ -60,11 +60,9 @@ for index, test_file in enumerate(test_names):
     inp = open(f"{test_file}.in", "rb").read()
     ans = open(f"{test_file}.ans", "rb").read().decode("utf-8").replace("\r\n", "\n")
     with cwd(args.language):
-        subprocess.run(["./build.sh", args.problem])
+        subprocess.run(["./prepare", args.problem])
         result = (
-            subprocess.run(
-                ["./run.sh", args.problem], stdout=subprocess.PIPE, input=inp
-            )
+            subprocess.run(["./run", args.problem], stdout=subprocess.PIPE, input=inp)
             .stdout.decode("utf-8")
             .replace("\r\n", "\n")
         )
@@ -81,7 +79,7 @@ for index, test_file in enumerate(test_names):
 if passes == len(test_names):
     with cwd(args.language):
         source = (
-            subprocess.run(["./source.sh", args.problem], stdout=subprocess.PIPE)
+            subprocess.run(["./source", args.problem], stdout=subprocess.PIPE)
             .stdout.decode("utf-8")
             .strip()
         )
