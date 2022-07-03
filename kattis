@@ -1,87 +1,51 @@
-#!/usr/bin/env python3
-import argparse
-import os
-import subprocess
-import sys
-from pathlib import Path
-from zipfile import BadZipFile, ZipFile
+#!/bin/sh
+set -euo pipefail
 
-import requests
+LANGUAGE=$1
+PROBLEM=$2
+ROOT=$(pwd)
 
-parser = argparse.ArgumentParser()
-parser.add_argument("language")
-parser.add_argument("problem")
-parser.set_defaults(submit=False)
-args = parser.parse_args()
+alias diff="diff -y --color"
 
-from contextlib import contextmanager
+cd $ROOT/$LANGUAGE
 
+if [ -f "prepare" ]; then
+  ./prepare $PROBLEM
+fi
 
-@contextmanager
-def cwd(path):
-    oldpwd = os.getcwd()
-    os.chdir(path)
-    try:
-        yield
-    finally:
-        os.chdir(oldpwd)
+cd $ROOT
 
+$ROOT/utils/populate_tests $PROBLEM
 
-TEST_DIR = f"tests/{args.problem}"
-test_dir = Path(TEST_DIR)
-if not test_dir.exists():
-    print("Tests not found. Downloading")
-    CACHE_PATH = ".cache"
-    ZIP_PATH = CACHE_PATH + "/samples.zip"
-    cache_path = Path(CACHE_PATH)
-    request = requests.get(
-        f"https://open.kattis.com/problems/{args.problem}/file/statement/samples.zip",
-    )
-    cache_path.mkdir(exist_ok=True)
-    test_dir.mkdir(exist_ok=True, parents=True)
+cd $ROOT/$LANGUAGE
 
-    with open(ZIP_PATH, "wb") as outfile:
-        outfile.write(request.content)
-    try:
-        with ZipFile(ZIP_PATH) as myzip:
-            myzip.extractall(path=TEST_DIR)
-    except BadZipFile:
-        print("Problem not found")
-        sys.exit()
+echo "Validating $LANGUAGE:$PROBLEM"
 
-passes = 0
-print(f'Testing problem "{args.problem}" with language "{args.language}"')
-test_names = list(
-    {".".join(str(test_file).split(".")[:-1]) for test_file in test_dir.iterdir()}
-)
-test_names.sort()
-for index, test_file in enumerate(test_names):
-    print(f"[{index+1}/{len(test_names)}]", end=" ")
-    inp = open(f"{test_file}.in", "rb").read()
-    ans = open(f"{test_file}.ans", "rb").read().decode("utf-8").replace("\r\n", "\n")
-    with cwd(args.language):
-        subprocess.run(["./prepare", args.problem])
-        result = (
-            subprocess.run(["./run", args.problem], stdout=subprocess.PIPE, input=inp)
-            .stdout.decode("utf-8")
-            .replace("\r\n", "\n")
-        )
-    if result == ans:
-        print("✅")
-        passes += 1
-    else:
-        print("❌")
-        print("received:")
-        print(result)
-        print("expected:")
-        print(ans)
+INPUTS=$(ls "$ROOT/tests/$PROBLEM" | grep "\.in$" | sed "s/\.in$//")
 
-if passes == len(test_names):
-    with cwd(args.language):
-        source = (
-            subprocess.run(["./source", args.problem], stdout=subprocess.PIPE)
-            .stdout.decode("utf-8")
-            .strip()
-        )
-    print(f"{args.language}/{source}")
-    subprocess.run(["./submit", f"{args.language}/{source}", "-p", args.problem])
+input_index=0
+input_length=$(echo $INPUTS | wc -w)
+failed=false
+for input_name in $INPUTS
+do
+  input_index=$((input_index+1))
+  echo -n "Test $input_index/$input_length.."
+  INPUT=$(cat "$ROOT/tests/$PROBLEM/$input_name.in")
+  OUTPUT=$(echo $INPUT | $ROOT/$LANGUAGE/run $PROBLEM)
+  EXPECTED=$(cat "$ROOT/tests/$PROBLEM/$input_name.ans")
+
+  res=0
+  DIFF=$(diff <(echo $EXPECTED) <(echo $OUTPUT)) || res=$?
+
+  if [ $res == 0 ]; then
+    echo "PASS"
+  else
+    echo "FAIL"
+    echo $DIFF
+    failed=true
+  fi
+done
+
+if [ $failed = false ]; then
+  $ROOT/submit -p $PROBLEM -l $LANGUAGE -f $($ROOT/$LANGUAGE/source $PROBLEM)
+fi

@@ -10,7 +10,7 @@ fn main() -> io::Result<()> {
             initials.push(character);
             push_next = false;
         } else if character == '-' {
-            push_next = true;
+            push_next = false;
         }
     }
     let initials: String = initials.into_iter().collect();
