@@ -1,0 +1,3 @@
+#!/bin/sh
+mkdir -p build
+ghc "solutions/$1.hs" -dynamic -o "build/$1"

@@ -1,0 +1,2 @@
+#!/bin/sh
+echo "solutions/$1.rs"

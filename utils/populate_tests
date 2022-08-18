@@ -1,0 +1,10 @@
+#!/bin/sh
+PROBLEM=$1
+
+if [ ! -d "./tests/$PROBLEM" ]; then
+  echo "Test Inputs not found. Downloading."
+  mkdir -p ".cache/$PROBLEM"
+  mkdir -p "tests"
+  curl "https://open.kattis.com/problems/$PROBLEM/file/statement/samples.zip" --output ".cache/$PROBLEM/inputs.zip"
+  unzip ".cache/$PROBLEM/inputs.zip" -d "tests/$PROBLEM"
+fi

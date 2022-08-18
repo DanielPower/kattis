@@ -1,0 +1,2 @@
+#!/bin/sh
+python solutions/$1.py

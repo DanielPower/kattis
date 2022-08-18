@@ -1,0 +1,2 @@
+#!/bin/sh
+ls solutions | grep ".py$" | sed "s/...$//"
