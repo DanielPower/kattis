@@ -10,4 +10,7 @@ writeOutput = unwords . map show
 solve :: [Int] -> [Int]
 solve values = bijele (head values, values !! 1, values !! 2, values !! 3, values !! 4, values !! 5)
 
+sum :: Int -> Int -> Int
+sum a b = a + b
+
 main = interact (writeOutput . solve . readInput)
